@@ -12,6 +12,42 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
+  TextEditingController weightController = TextEditingController();
+  TextEditingController heightController = TextEditingController();
+
+  String _infoText = "Informe seus dados";
+
+  void _resetFields() {
+    weightController.text = "";
+    heightController.text = "";
+
+    setState(() {
+      _infoText = "Informe seus dados";
+    });
+  }
+
+  void _calculate() {
+    double weight = double.parse(weightController.text);
+    double height = double.parse(heightController.text) / 100;
+    double imc = weight / (height * height);
+
+    setState(() {
+      if (imc < 18.6) {
+        _infoText = "Abaixo do peso (${imc.toStringAsPrecision(3)})";
+      } else if (imc >= 18.6 && imc < 24.9) {
+        _infoText = "Peso ideal (${imc.toStringAsPrecision(3)})";
+      } else if (imc >= 24.9 && imc < 29.9) {
+        _infoText = "Levemente acima do peso (${imc.toStringAsPrecision(3)})";
+      } else if (imc >= 29.9 && imc < 34.9) {
+        _infoText = "Obesidade grau I (${imc.toStringAsPrecision(3)})";
+      } else if (imc >= 34.9 && imc < 39.9) {
+        _infoText = "Obesidade grau II (${imc.toStringAsPrecision(3)})";
+      } else if (imc >= 40) {
+        _infoText = "Obesidade grau III (${imc.toStringAsPrecision(3)})";
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -19,28 +55,80 @@ class _HomeState extends State<Home> {
         title: Text("Calculadora de IMC"),
         centerTitle: true,
         backgroundColor: Colors.deepPurpleAccent,
-        actions: [IconButton(icon: Icon(Icons.refresh), onPressed: () {})],
+        actions: [
+          IconButton(icon: Icon(Icons.refresh), onPressed: _resetFields)
+        ],
       ),
       backgroundColor: Colors.white,
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Icon(Icons.person_outline, size: 120, color: Colors.deepPurpleAccent),
-          TextField(
-              keyboardType: TextInputType.number,
-              decoration: InputDecoration(
-                  labelText: "Peso (kg)",
-                  labelStyle: TextStyle(color: Colors.deepPurpleAccent)),
+      body: SingleChildScrollView(
+        padding: EdgeInsets.fromLTRB(16, 8, 16, 0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(bottom: 32, top: 0),
+              child: Icon(Icons.person_outline,
+                  size: 120, color: Colors.deepPurpleAccent),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(top: 8, bottom: 8),
+              child: TextField(
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(
+                    focusedBorder: OutlineInputBorder(
+                        borderSide: BorderSide(
+                            color: Colors.deepPurpleAccent, width: 2)),
+                    enabledBorder: OutlineInputBorder(
+                        borderSide: BorderSide(
+                            color: Colors.deepPurpleAccent, width: 2)),
+                    labelText: "Peso (kg)",
+                    labelStyle: TextStyle(color: Colors.deepPurpleAccent)),
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.deepPurpleAccent, fontSize: 20),
+                controller: weightController,
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(top: 8, bottom: 8),
+              child: TextField(
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(
+                    focusedBorder: OutlineInputBorder(
+                        borderSide: BorderSide(
+                            color: Colors.deepPurpleAccent, width: 2)),
+                    enabledBorder: OutlineInputBorder(
+                        borderSide: BorderSide(
+                            color: Colors.deepPurpleAccent, width: 2)),
+                    labelText: "Altura (cm)",
+                    labelStyle: TextStyle(color: Colors.deepPurpleAccent)),
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.deepPurpleAccent, fontSize: 20),
+                controller: heightController,
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(top: 32, bottom: 32),
+              child: Container(
+                height: 60,
+                child: ElevatedButton(
+                  onPressed: _calculate,
+                  style: ButtonStyle(
+                      backgroundColor:
+                          MaterialStateProperty.all(Colors.deepPurpleAccent)),
+                  child: Text(
+                    "Calcular",
+                    style: TextStyle(color: Colors.white, fontSize: 20),
+                  ),
+                ),
+              ),
+            ),
+            Text(
+              _infoText,
+              style: TextStyle(color: Colors.deepPurpleAccent, fontSize: 20),
               textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.deepPurpleAccent, fontSize: 25)),
-          TextField(
-              keyboardType: TextInputType.number,
-              decoration: InputDecoration(
-                  labelText: "Altura (cm)",
-                  labelStyle: TextStyle(color: Colors.deepPurpleAccent)),
-              textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.deepPurpleAccent, fontSize: 25))
-        ],
+            )
+          ],
+        ),
       ),
     );
   }
