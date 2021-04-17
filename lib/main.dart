@@ -3,6 +3,19 @@ import 'package:flutter/material.dart';
 void main(List<String> args) {
   runApp(MaterialApp(
     home: Home(),
+    theme: ThemeData(
+        inputDecorationTheme: InputDecorationTheme(
+            enabledBorder: OutlineInputBorder(
+                borderSide:
+                    BorderSide(color: Colors.deepPurpleAccent, width: 1)),
+            errorBorder: OutlineInputBorder(
+                borderSide: BorderSide(color: Colors.red, width: 1)),
+            focusedBorder: OutlineInputBorder(
+                borderSide:
+                    BorderSide(color: Colors.deepPurpleAccent, width: 2)),
+            focusedErrorBorder: OutlineInputBorder(
+                borderSide: BorderSide(color: Colors.red, width: 2)),
+            labelStyle: TextStyle(color: Colors.deepPurpleAccent))),
   ));
 }
 
@@ -15,7 +28,13 @@ class _HomeState extends State<Home> {
   TextEditingController weightController = TextEditingController();
   TextEditingController heightController = TextEditingController();
 
+  GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+
   String _infoText = "Informe seus dados";
+
+  hideKeyboard() {
+    FocusScope.of(context).unfocus();
+  }
 
   void _resetFields() {
     weightController.text = "";
@@ -50,6 +69,8 @@ class _HomeState extends State<Home> {
 
   @override
   Widget build(BuildContext context) {
+    final node = FocusScope.of(context);
+
     return Scaffold(
       appBar: AppBar(
         title: Text("Calculadora de IMC"),
@@ -60,74 +81,96 @@ class _HomeState extends State<Home> {
         ],
       ),
       backgroundColor: Colors.white,
-      body: SingleChildScrollView(
-        padding: EdgeInsets.fromLTRB(16, 8, 16, 0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Padding(
-              padding: const EdgeInsets.only(bottom: 32, top: 0),
-              child: Icon(Icons.person_outline,
-                  size: 120, color: Colors.deepPurpleAccent),
-            ),
-            Padding(
-              padding: const EdgeInsets.only(top: 8, bottom: 8),
-              child: TextField(
-                keyboardType: TextInputType.number,
-                decoration: InputDecoration(
-                    focusedBorder: OutlineInputBorder(
-                        borderSide: BorderSide(
-                            color: Colors.deepPurpleAccent, width: 2)),
-                    enabledBorder: OutlineInputBorder(
-                        borderSide: BorderSide(
-                            color: Colors.deepPurpleAccent, width: 2)),
-                    labelText: "Peso (kg)",
-                    labelStyle: TextStyle(color: Colors.deepPurpleAccent)),
-                textAlign: TextAlign.center,
-                style: TextStyle(color: Colors.deepPurpleAccent, fontSize: 20),
-                controller: weightController,
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.only(top: 8, bottom: 8),
-              child: TextField(
-                keyboardType: TextInputType.number,
-                decoration: InputDecoration(
-                    focusedBorder: OutlineInputBorder(
-                        borderSide: BorderSide(
-                            color: Colors.deepPurpleAccent, width: 2)),
-                    enabledBorder: OutlineInputBorder(
-                        borderSide: BorderSide(
-                            color: Colors.deepPurpleAccent, width: 2)),
-                    labelText: "Altura (cm)",
-                    labelStyle: TextStyle(color: Colors.deepPurpleAccent)),
-                textAlign: TextAlign.center,
-                style: TextStyle(color: Colors.deepPurpleAccent, fontSize: 20),
-                controller: heightController,
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.only(top: 32, bottom: 32),
-              child: Container(
-                height: 60,
-                child: ElevatedButton(
-                  onPressed: _calculate,
-                  style: ButtonStyle(
-                      backgroundColor:
-                          MaterialStateProperty.all(Colors.deepPurpleAccent)),
-                  child: Text(
-                    "Calcular",
-                    style: TextStyle(color: Colors.white, fontSize: 20),
+      body: GestureDetector(
+        child: SingleChildScrollView(
+          padding: EdgeInsets.fromLTRB(16, 8, 16, 0),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 32, top: 0),
+                  child: Icon(Icons.person_outline,
+                      size: 120, color: Colors.deepPurpleAccent),
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(top: 8, bottom: 8),
+                  child: TextFormField(
+                    keyboardType: TextInputType.number,
+                    textAlign: TextAlign.center,
+                    decoration: InputDecoration(
+                      labelText: "Peso (kg)",
+                    ),
+                    style:
+                        TextStyle(color: Colors.deepPurpleAccent, fontSize: 20),
+                    controller: weightController,
+                    textInputAction: TextInputAction.next,
+                    onEditingComplete: node.nextFocus,
+                    validator: (value) {
+                      if (value.isEmpty) {
+                        return "Insira seu peso!";
+                      }
+                      return null;
+                    },
                   ),
                 ),
-              ),
+                Padding(
+                  padding: const EdgeInsets.only(top: 8, bottom: 8),
+                  child: TextFormField(
+                    keyboardType: TextInputType.number,
+                    decoration: InputDecoration(
+                      labelText: "Altura (cm)",
+                    ),
+                    textAlign: TextAlign.center,
+                    style:
+                        TextStyle(color: Colors.deepPurpleAccent, fontSize: 20),
+                    controller: heightController,
+                    textInputAction: TextInputAction.send,
+                    onEditingComplete: () {
+                      node.unfocus();
+                      if (_formKey.currentState.validate()) {
+                        _calculate();
+                      }
+                    },
+                    validator: (value) {
+                      if (value.isEmpty) {
+                        return "Insira sua altura!";
+                      }
+                      return null;
+                    },
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(top: 32, bottom: 32),
+                  child: Container(
+                    height: 60,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        hideKeyboard();
+                        if (_formKey.currentState.validate()) {
+                          _calculate();
+                        }
+                      },
+                      style: ButtonStyle(
+                          backgroundColor: MaterialStateProperty.all(
+                              Colors.deepPurpleAccent)),
+                      child: Text(
+                        "Calcular",
+                        style: TextStyle(color: Colors.white, fontSize: 20),
+                      ),
+                    ),
+                  ),
+                ),
+                Text(
+                  _infoText,
+                  style:
+                      TextStyle(color: Colors.deepPurpleAccent, fontSize: 20),
+                  textAlign: TextAlign.center,
+                )
+              ],
             ),
-            Text(
-              _infoText,
-              style: TextStyle(color: Colors.deepPurpleAccent, fontSize: 20),
-              textAlign: TextAlign.center,
-            )
-          ],
+          ),
         ),
       ),
     );
